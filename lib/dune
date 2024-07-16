@@ -1,4 +1,9 @@
 (library
   (name exact)
   (public_name exact)
+  (ocamlopt_flags :standard -O3)
+  (foreign_stubs
+    (language c)
+    (names dc2)
+    )
   )

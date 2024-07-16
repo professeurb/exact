@@ -56,4 +56,6 @@ let _ =
 ..13.27..
 7......6.|}
   in
-  Printf.printf "Number of solutions: %d\n" (DC.make pb |> DC.count_solutions)
+  Printf.printf "Number of solutions: %d - %d\n"
+    (DC.make pb |> DC.count_solutions)
+    (DC.make pb |> DC.count_solutions2)

@@ -1,4 +1,3 @@
-(*  TODO: Stoppable solution search *)
 (*  TODO: Use one big array *)
 (*  TODO: Add secondary colors *)
 
@@ -21,39 +20,39 @@ and ('a, 'b) row = {
 and ('a, 'b) t = {
   mutable head : int;
   mutable tail : int;
-  mutable cols : (('a, 'b) col * int) array;
+  mutable cols : (('a, 'b) col * int ref) array;
   mutable rows : ('a, 'b) row array;
 }
 
-let hide_rc row c_pos =
-  let col, r_pos = row.rc_arr.(c_pos) in
-  assert (fst col.cr_arr.(r_pos) == row);
-  assert (snd col.cr_arr.(r_pos) = c_pos);
+let hide_rc row rc_pos =
+  let col, cr_pos = row.rc_arr.(rc_pos) in
+  assert (fst col.cr_arr.(cr_pos) == row);
+  assert (snd col.cr_arr.(cr_pos) = rc_pos);
   let cr_end = col.cr_end - 1 in
   col.cr_end <- cr_end;
-  if r_pos < cr_end then (
+  if cr_pos < cr_end then (
     let row', c_pos' = col.cr_arr.(cr_end) in
-    col.cr_arr.(r_pos) <- (row', c_pos');
-    row'.rc_arr.(c_pos') <- (col, r_pos);
-    col.cr_arr.(cr_end) <- (row, c_pos);
-    row.rc_arr.(c_pos) <- (col, cr_end))
+    col.cr_arr.(cr_pos) <- (row', c_pos');
+    row'.rc_arr.(c_pos') <- (col, cr_pos);
+    col.cr_arr.(cr_end) <- (row, rc_pos);
+    row.rc_arr.(rc_pos) <- (col, cr_end))
 
 let unhide_rc row c_pos =
   let col, _ = row.rc_arr.(c_pos) in
   col.cr_end <- col.cr_end + 1
 
-let hide_cr col r_pos =
-  let row, c_pos = col.cr_arr.(r_pos) in
-  assert (fst row.rc_arr.(c_pos) == col);
-  assert (snd row.rc_arr.(c_pos) = r_pos);
+let hide_cr col cr_pos =
+  let row, rc_pos = col.cr_arr.(cr_pos) in
+  assert (fst row.rc_arr.(rc_pos) == col);
+  assert (snd row.rc_arr.(rc_pos) = cr_pos);
   let rc_end = row.rc_end - 1 in
   row.rc_end <- rc_end;
-  if c_pos < rc_end then (
-    let col', r_pos' = row.rc_arr.(rc_end) in
-    row.rc_arr.(c_pos) <- (col', r_pos');
-    col'.cr_arr.(r_pos') <- (row, c_pos);
-    row.rc_arr.(rc_end) <- (col, r_pos);
-    col.cr_arr.(r_pos) <- (row, rc_end))
+  if rc_pos < rc_end then (
+    let col', cr_pos' = row.rc_arr.(rc_end) in
+    row.rc_arr.(rc_pos) <- (col', cr_pos');
+    col'.cr_arr.(cr_pos') <- (row, rc_pos);
+    row.rc_arr.(rc_end) <- (col, cr_pos);
+    col.cr_arr.(cr_pos) <- (row, rc_end))
 
 let unhide_cr col r_pos =
   let row, _ = col.cr_arr.(r_pos) in
@@ -108,9 +107,9 @@ let move_to_head col =
   pb.head <- head + 1;
   (* Printf.printf "head from %d to %d\n" head pb.head; *)
   if col.pb_pos > head then (
-    let col', _ = pb.cols.(head) in
-    pb.cols.(head) <- (col, 0);
-    pb.cols.(col.pb_pos) <- (col', 0);
+    let ((col', _) as pair) = pb.cols.(head) in
+    pb.cols.(head) <- pb.cols.(col.pb_pos);
+    pb.cols.(col.pb_pos) <- pair;
     col'.pb_pos <- col.pb_pos;
     col.pb_pos <- head)
 
@@ -123,9 +122,9 @@ let move_to_tail col =
   let tail = pb.tail - 1 in
   pb.tail <- tail;
   if col.pb_pos < tail then (
-    let col', _ = pb.cols.(tail) in
-    pb.cols.(tail) <- (col, 0);
-    pb.cols.(col.pb_pos) <- (col', 0);
+    let ((col', _) as pair) = pb.cols.(tail) in
+    pb.cols.(tail) <- pb.cols.(col.pb_pos);
+    pb.cols.(col.pb_pos) <- pair;
     col'.pb_pos <- col.pb_pos;
     col.pb_pos <- tail)
 
@@ -274,7 +273,7 @@ let make ec =
   problem.cols <-
     Ec.get_primary_cols ec
     |> Seq.map (Hashtbl.find cols_tbl)
-    |> Seq.map (fun col -> (col, 0))
+    |> Seq.map (fun col -> (col, ref 0))
     |> Array.of_seq;
   problem.tail <- Array.length problem.cols;
   problem.rows <- Hashtbl.to_seq_values rows_tbl |> Array.of_seq;
@@ -358,3 +357,57 @@ let count_solutions pb =
     in
     aux ();
     !cnt
+
+let rec move_in pb =
+  if pb.head < pb.tail then (
+    (* pick a col to cover *)
+    let col_ref = ref (fst pb.cols.(pb.head))
+    and pos = ref (pb.head + 1) in
+    let score_ref = ref !col_ref.cr_end in
+    while !pos < pb.tail do
+      let curr_col = fst pb.cols.(!pos) in
+      if curr_col.cr_end < !score_ref then (
+        col_ref := curr_col;
+        score_ref := curr_col.cr_end);
+      incr pos
+    done;
+    let col = !col_ref in
+    cover col;
+    snd pb.cols.(pb.head - 1) := 0;
+    move_on pb)
+
+and move_on pb =
+  let col, pos_ref = pb.cols.(pb.head - 1) in
+  if !pos_ref >= col.cr_end then (
+    uncover (fst pb.cols.(pb.head - 1));
+    move_out pb)
+  else
+    let row = fst col.cr_arr.(!pos_ref) in
+    select row;
+    move_in pb
+
+and move_out pb =
+  if pb.head > 0 then (
+    let col, pos_ref = pb.cols.(pb.head - 1) in
+    let row = fst col.cr_arr.(!pos_ref) in
+    deselect row;
+    incr pos_ref;
+    move_on pb)
+
+let count_solutions2 pb =
+  let cnt = ref 0 in
+  move_in pb;
+  while pb.head > 0 do
+    incr cnt;
+    move_out pb
+  done;
+  !cnt
+
+let _get_sol pb =
+  let s = ref [] in
+  for i = 0 to pb.head - 1 do
+    let col, pos = pb.cols.(i) in
+    let row, _ = col.cr_arr.(!pos) in
+    s := (col.col_name, !pos, col.cr_end, row.row_name) :: !s
+  done;
+  (pb.head, !s)
