@@ -198,6 +198,10 @@ let make_c ec =
   (*   assert (pb2.(i) = (pb.{i} |> Int64.to_int)) *)
   (* done; *)
   (* Printf.printf "Plum !\n%!"; *)
+  let pb_addr = Obj.magic pb in
+  for i = 0 to Bigarray.Array1.dim pb - 1 do
+    pb.{i} <- Int64.add (Int64.mul (8 |> Int64.of_int) pb.{i}) pb_addr
+  done;
   pb
 
 let count_solutions_c pb =
