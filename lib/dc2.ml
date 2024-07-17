@@ -1,11 +1,11 @@
 (*  TODO: Add secondary colors *)
 
 external forward_c :
-  (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t -> unit
+  (int64, Bigarray.int64_elt, Bigarray.c_layout) Bigarray.Array1.t -> unit
   = "forward"
 
 external backward_c :
-  (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t -> unit
+  (int64, Bigarray.int64_elt, Bigarray.c_layout) Bigarray.Array1.t -> unit
   = "backward"
 
 let debug = false
@@ -110,8 +110,8 @@ let make ec =
 
 let make_c ec =
   let pb =
-    Bigarray.Array1.init Int32 Bigarray.c_layout (problem_size ec) (fun _ ->
-        Int32.zero)
+    Bigarray.Array1.init Int64 Bigarray.c_layout (problem_size ec) (fun _ ->
+        Int64.zero)
   in
   let col_addresses = Hashtbl.create 10 and row_addresses = Hashtbl.create 10 in
   let ptr = ref (2 + (2 * (Ec.get_primary_cols ec |> Seq.length))) in
@@ -131,26 +131,26 @@ let make_c ec =
   if debug then Printf.printf "!ptr = %d / %d\n" !ptr (problem_size ec);
   (* assert (!ptr = Array.length pb); *)
   (* Fill primary colList *)
-  pb.{0} <- 2 |> Int32.of_int (* head *);
+  pb.{0} <- 2 |> Int64.of_int (* head *);
   let tail = ref 2 in
   Seq.iter
     (fun col ->
       let col_addr = Hashtbl.find col_addresses col in
-      pb.{!tail} <- col_addr |> Int32.of_int;
-      pb.{col_addr - 1} <- !tail |> Int32.of_int;
+      pb.{!tail} <- col_addr |> Int64.of_int;
+      pb.{col_addr - 1} <- !tail |> Int64.of_int;
       tail += 2)
     (Ec.get_primary_cols ec);
-  pb.{1} <- !tail |> Int32.of_int;
+  pb.{1} <- !tail |> Int64.of_int;
   (* Fill cols_of_rows and rows_of_cols *)
   Seq.iter
     (fun col ->
       let col_addr = Hashtbl.find col_addresses col in
-      pb.{col_addr} <- col_addr + 1 |> Int32.of_int)
+      pb.{col_addr} <- col_addr + 1 |> Int64.of_int)
     (Ec.get_primary_cols ec);
   Seq.iter
     (fun row ->
       let row_addr = Hashtbl.find row_addresses row in
-      pb.{row_addr - 1} <- row_addr - 3 |> Int32.of_int)
+      pb.{row_addr - 1} <- row_addr - 3 |> Int64.of_int)
     (Ec.get_rows ec);
   Seq.iter
     (fun col ->
@@ -158,21 +158,21 @@ let make_c ec =
       List.iter
         (fun row ->
           let row_addr = Hashtbl.find row_addresses row in
-          let col_pos = pb.{col_addr} |> Int32.to_int
-          and row_pos = pb.{row_addr - 1} |> Int32.to_int in
-          pb.{col_pos} <- row_pos |> Int32.of_int;
-          pb.{col_pos + 1} <- row_addr |> Int32.of_int;
-          pb.{row_pos} <- col_pos |> Int32.of_int;
-          pb.{row_pos + 1} <- col_addr |> Int32.of_int;
-          pb.{col_addr} <- col_pos + 2 |> Int32.of_int;
-          pb.{row_addr - 1} <- row_pos - 2 |> Int32.of_int)
+          let col_pos = pb.{col_addr} |> Int64.to_int
+          and row_pos = pb.{row_addr - 1} |> Int64.to_int in
+          pb.{col_pos} <- row_pos |> Int64.of_int;
+          pb.{col_pos + 1} <- row_addr |> Int64.of_int;
+          pb.{row_pos} <- col_pos |> Int64.of_int;
+          pb.{row_pos + 1} <- col_addr |> Int64.of_int;
+          pb.{col_addr} <- col_pos + 2 |> Int64.of_int;
+          pb.{row_addr - 1} <- row_pos - 2 |> Int64.of_int)
         (Ec.get_rows_of_col ec col))
     (Ec.get_primary_cols ec);
   (* Fill rows_of_rows *)
   Seq.iter
     (fun row ->
       let row_addr = Hashtbl.find row_addresses row in
-      pb.{row_addr} <- row_addr + 1 |> Int32.of_int)
+      pb.{row_addr} <- row_addr + 1 |> Int64.of_int)
     (Ec.get_rows ec);
   Seq.iter
     (fun row ->
@@ -181,21 +181,21 @@ let make_c ec =
         (fun row' ->
           if row' < row then (
             let row'_addr = Hashtbl.find row_addresses row' in
-            let row_pos = pb.{row_addr} |> Int32.to_int
-            and row'_pos = pb.{row'_addr} |> Int32.to_int in
-            pb.{row_pos} <- row'_pos |> Int32.of_int;
-            pb.{row_pos + 1} <- row'_addr |> Int32.of_int;
-            pb.{row'_pos} <- row_pos |> Int32.of_int;
-            pb.{row'_pos + 1} <- row_addr |> Int32.of_int;
-            pb.{row_addr} <- row_pos + 2 |> Int32.of_int;
-            pb.{row'_addr} <- row'_pos + 2 |> Int32.of_int))
+            let row_pos = pb.{row_addr} |> Int64.to_int
+            and row'_pos = pb.{row'_addr} |> Int64.to_int in
+            pb.{row_pos} <- row'_pos |> Int64.of_int;
+            pb.{row_pos + 1} <- row'_addr |> Int64.of_int;
+            pb.{row'_pos} <- row_pos |> Int64.of_int;
+            pb.{row'_pos + 1} <- row_addr |> Int64.of_int;
+            pb.{row_addr} <- row_pos + 2 |> Int64.of_int;
+            pb.{row'_addr} <- row'_pos + 2 |> Int64.of_int))
         (Ec.get_rows_of_row ec row))
     (Ec.get_rows ec);
   (* let pb2 = make ec in *)
   (* Printf.printf "%d / %d\n%!" (Array.length pb2) (Bigarray.Array1.dim pb); *)
   (* for i = 0 to Array.length pb2 - 1 do *)
   (*   Printf.printf "%d %!" i; *)
-  (*   assert (pb2.(i) = (pb.{i} |> Int32.to_int)) *)
+  (*   assert (pb2.(i) = (pb.{i} |> Int64.to_int)) *)
   (* done; *)
   (* Printf.printf "Plum !\n%!"; *)
   pb
@@ -204,13 +204,13 @@ let count_solutions_c pb =
   let arr = make_c pb and cnt = ref 0 in
   if arr.{0} = arr.{1} then 0
   else (
-    (* Printf.printf "%d %d\n" (arr.{0} |> Int32.to_int) (arr.{1} |> Int32.to_int); *)
+    (* Printf.printf "%d %d\n" (arr.{0} |> Int64.to_int) (arr.{1} |> Int64.to_int); *)
     forward_c arr;
-    (* Printf.printf "%d %d\n" (arr.{0} |> Int32.to_int) (arr.{1} |> Int32.to_int); *)
+    (* Printf.printf "%d %d\n" (arr.{0} |> Int64.to_int) (arr.{1} |> Int64.to_int); *)
     while arr.{0} = arr.{1} do
       incr cnt;
       backward_c arr
-      (* Printf.printf "%d %d\n" (arr.{0} |> Int32.to_int) (arr.{1} |> Int32.to_int) *)
+      (* Printf.printf "%d %d\n" (arr.{0} |> Int64.to_int) (arr.{1} |> Int64.to_int) *)
     done;
     !cnt)
 

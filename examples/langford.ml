@@ -2,7 +2,7 @@ open Exact
 
 type col = P of int | W of int
 
-let langford_ex n =
+let langford n =
   let ec = EC.create () in
   for w = 1 to n do
     EC.add_primary ec (1000 + w)
