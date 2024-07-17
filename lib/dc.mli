@@ -1,5 +1,2 @@
-type ('a, 'b) t
-
-val make : ('a, 'b) Ec.t -> ('a, 'b) t
-val count_solutions : ('a, 'b) t -> int
-val count_solutions2 : ('a, 'b) t -> int
+val make : ('a, 'b) Ec.t -> int array
+val count_solutions : ('a, 'b) Ec.t -> int

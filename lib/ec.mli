@@ -1,13 +1,14 @@
-type ('col, 'row) t
+type ('column, 'row, 'color) t
 
-val create : unit -> ('col, 'row) t
-val add_primary : ('col, 'row) t -> 'col -> unit
-val add_secondary : ('col, 'row) t -> 'col -> unit
-val add_shape : ('col, 'row) t -> 'row -> 'col list -> unit
-val get_cols_of_row : ('col, 'row) t -> 'row -> 'col list
-val get_cols : ('col, 'row) t -> 'col Seq.t
-val get_primary_cols : ('col, 'row) t -> 'col Seq.t
-val get_rows : ('col, 'row) t -> 'row Seq.t
-val get_primary_cols_of_row : ('col, 'row) t -> 'row -> 'col list
-val get_rows_of_col : ('col, 'row) t -> 'col -> 'row list
-val get_rows_of_row : ('col, 'row) t -> 'row -> 'row list
+val create : unit -> ('column, 'row, 'color) t
+val add_primary : ('column, 'row, 'color) t -> 'column -> unit
+val add_secondary : ('column, 'row, 'color) t -> 'column -> unit
+val add_colored : ('column, 'row, 'color) t -> 'column -> unit
+val add_shape : ('column, 'row, 'color) t -> 'row -> 'column list -> unit
+val get_cols_of_row : ('column, 'row, 'color) t -> 'row -> 'column list
+val get_cols : ('column, 'row, 'color) t -> 'column Seq.t
+val get_primary_cols : ('column, 'row, 'color) t -> 'column Seq.t
+val get_rows : ('column, 'row, 'color) t -> 'row Seq.t
+val get_primary_cols_of_row : ('column, 'row, 'color) t -> 'row -> 'column list
+val get_rows_of_col : ('column, 'row, 'color) t -> 'column -> 'row list
+val get_rows_of_row : ('column, 'row, 'color) t -> 'row -> 'row list

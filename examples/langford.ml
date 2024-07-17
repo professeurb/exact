@@ -20,10 +20,7 @@ let langford n =
   done;
   ec
 
-let lf1 n = langford n |> DC.make |> DC.count_solutions
-let lf2 n = langford n |> DC.make |> DC.count_solutions2
-let lf3 n = langford n |> DC2.count_solutions_c
-let lf4 n = langford n |> DC2.make |> DC2.count_solutions
+let lf n = langford n |> DC.count_solutions
 
 let time f x =
   let t1 = Sys.time () in
@@ -33,26 +30,6 @@ let time f x =
 
 let _ =
   for n = 5 to 15 do
-    (* let r1, t1 = time lf1 n *)
-    (* and r2, t2 = time lf2 n *)
-    (* and r3, t3 = time lf3 n *)
-    (* and r4, t4 = time lf4 n in *)
-    let r3, t3 = time lf3 n in
-    (* assert (r1 = r2); *)
-    (* assert (r1 = r3); *)
-    (* assert (r1 = r4); *)
-    (* Printf.printf "%2d: %8d : %8f / %8f / %8f / %8f\n%!" n r1 t1 t2 t3 t4 *)
-    Printf.printf "%2d: %8d : %8f\n%!" n r3 t3
-  done
-
-let _ =
-  for n = 5 to 15 do
-    let r1, t1 = time lf1 n
-    and r2, t2 = time lf2 n
-    and r3, t3 = time lf3 n
-    and r4, t4 = time lf4 n in
-    assert (r1 = r2);
-    assert (r1 = r3);
-    assert (r1 = r4);
-    Printf.printf "%2d: %8d : %8f / %8f / %8f / %8f\n%!" n r1 t1 t2 t3 t4
+    let r, t = time lf n in
+    Printf.printf "%2d: %8d : %8f\n%!" n r t
   done
