@@ -2,7 +2,7 @@ open Exact
 
 type col = P of int | W of int
 
-let langford n =
+let langford_ex n =
   let ec = EC.create () in
   for w = 1 to n do
     EC.add_primary ec (1000 + w)
@@ -43,4 +43,16 @@ let _ =
     (* assert (r1 = r4); *)
     (* Printf.printf "%2d: %8d : %8f / %8f / %8f / %8f\n%!" n r1 t1 t2 t3 t4 *)
     Printf.printf "%2d: %8d : %8f\n%!" n r3 t3
+  done
+
+let _ =
+  for n = 5 to 15 do
+    let r1, t1 = time lf1 n
+    and r2, t2 = time lf2 n
+    and r3, t3 = time lf3 n
+    and r4, t4 = time lf4 n in
+    assert (r1 = r2);
+    assert (r1 = r3);
+    assert (r1 = r4);
+    Printf.printf "%2d: %8d : %8f / %8f / %8f / %8f\n%!" n r1 t1 t2 t3 t4
   done
