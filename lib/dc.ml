@@ -8,9 +8,10 @@ external backward_c :
   (int64, Bigarray.int64_elt, Bigarray.c_layout) Bigarray.Array1.t -> unit
   = "backward"
 
-let debug = false
+(* let debug = false *)
 let ( += ) a b = a := !a + b
-let ( -= ) a b = a := !a - b
+
+(* let ( -= ) a b = a := !a - b *)
 let size_of_col ec col = 2 + (2 * List.length (Ec.get_rows_of_col ec col))
 
 let size_of_row ec row =
@@ -45,7 +46,7 @@ let make ec =
         (!ptr + 1 + (2 * List.length (Ec.get_primary_cols_of_row ec row)));
       ptr += size_of_row ec row)
     (Ec.get_rows ec);
-  if debug then Printf.printf "!ptr = %d / %d\n" !ptr (problem_size ec);
+  (* if debug then Printf.printf "!ptr = %d / %d\n" !ptr (problem_size ec); *)
   (* assert (!ptr = Array.length pb); *)
   (* Fill primary colList *)
   pb.(0) <- 2 (* head *);
@@ -128,7 +129,7 @@ let make_c ec =
         (!ptr + 1 + (2 * List.length (Ec.get_primary_cols_of_row ec row)));
       ptr += size_of_row ec row)
     (Ec.get_rows ec);
-  if debug then Printf.printf "!ptr = %d / %d\n" !ptr (problem_size ec);
+  (* if debug then Printf.printf "!ptr = %d / %d\n" !ptr (problem_size ec); *)
   (* assert (!ptr = Array.length pb); *)
   (* Fill primary colList *)
   pb.{0} <- 2 |> Int64.of_int (* head *);

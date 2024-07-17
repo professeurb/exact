@@ -4,6 +4,8 @@
   (ocamlopt_flags :standard -O3)
   (foreign_stubs
     (language c)
-    (names dc2)
+    (names dc)
+    (flags
+   (:standard -O3 \ -pedantic))
     )
   )
