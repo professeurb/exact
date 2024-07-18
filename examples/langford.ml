@@ -1,6 +1,6 @@
 open Exact
 
-type col = P of int | W of int
+(* type col = P of int | W of int *)
 
 let langford n =
   let ec = EC.create () in
@@ -29,7 +29,7 @@ let time f x =
   (r, t2 -. t1)
 
 let _ =
-  for n = 5 to 15 do
+  for n = 5 to 14 do
     let r, t = time lf n in
     Printf.printf "%2d: %8d : %8f\n%!" n r t
   done

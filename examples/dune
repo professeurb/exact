@@ -1,0 +1,4 @@
+(executable
+ (name langford)
+ (public_name langford)
+ (libraries exact))
